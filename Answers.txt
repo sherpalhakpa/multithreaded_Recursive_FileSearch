@@ -1,0 +1,34 @@
+#Lhakpa Sherpa 
+#Dr Dingler
+#OS Programming
+A.
+ 
+i) Multithreading with n threads doesn’t simply mean diving up the work into n parts and simply running the code. 
+Even though the whole idea of thread is to divide workload, due to program complication it’s not as simple as 
+just dividing up work between threads and make them do their parts. Being one source code implementation 
+(specially in our case) Each part is highly interdependent on each other. For instance, one thread might 
+have to wait for value from other thread and etc. Also, the scenario of mutual exclusion comes in. In certain 
+parts, each thread has to wait in order to avoid all of them working/modifying a data at the same time (mutex). 
+
+ii) I guess that would depend on the implementation. For my implementation it won’t cause much difference. But 
+if we are well aware of the directory structure/all directory follow a standard form the work division will make 
+more sense. 
+
+iii) My implementation turned out to be slower than the regular version. (well that’s a bummer) I guess my work 
+division wasn’t the best one. I’m well aware my implementation is not efficiently using the 4 threads. Other threads 
+except 0 is not allowed to make threads. 
+
+
+B.
+I think this implementation is slower cause it’s IO bound that basically means the execution times mostly depends on 
+time spent on I/O operations.  In addition, I’m not sure but guessing that 4 might not be the best threads for this 
+problem. A good implementation would have the exact number of threads required so there won’t be any threads just 
+waiting doing nothing nor any free work to be taken. 
+In this specific case, since it’s IO bound we could look for ways to minimize I/O time for instance:
+-	Store everything that needs to be output into a string,
+-	and print them out at the end (not in the thread)
+-	we could reduce the IO time to get better performance
+C.
+I’m just guessing (because of persistence) that whenever we run a program some info of this implementation might be 
+saved in the system. And running next time we won’t have to do all the things we did last time so comparatively faster.
+
