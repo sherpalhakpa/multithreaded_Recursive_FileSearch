@@ -1,20 +1,19 @@
-
 #define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h> 
-#include <dirent.h> 
-#include <string.h> 
-#include <sys/time.h> 
-#include <pthread.h>//for thread 
+#include <sys/types.h>
+#include <dirent.h>
+#include <string.h>
+#include <sys/time.h>
+#include <pthread.h>//for thread
 #include <errno.h>
 
 #define threadNum 4
 #define max 256
-//takes a file/dir as argument, recurses, 
+//takes a file/dir as argument, recurses,
 // prints name if empty dir or not a dir (leaves)
-void *recur_file_search(void *file); 
+void *recur_file_search(void *file);
 
 struct threadPath{
 	char *path;
@@ -29,14 +28,14 @@ struct threadPath{
 //couldn't think a better way to implement it here
 
 
-//pointers to the structs 
+//pointers to the structs
 struct threadPath *mythread[threadNum];
-//index to tarck treads 
+//index to tarck treads
 int threadIndex = 1;
 const char *search_term;
-//share search term globally (rather than passing recursively) 
+//share search term globally (rather than passing recursively)
 
-//how many times in total found 
+//how many times in total found
 int occurance = 0;
 
 //mutex helps us make sure a code section is only accessible by one thread at a time
@@ -54,7 +53,7 @@ int main(int argc, char **argv) {
 	}
 
     //explicit initialization of mutex
-    //just use the default behaviour (Null as attribute) 
+    //just use the default behaviour (Null as attribute)
 	pthread_mutex_init(&mutex, 0);
 	//initial variale and array
 	for(int i = 0; i < threadNum; i++){
@@ -86,21 +85,19 @@ int main(int argc, char **argv) {
 	mythread[0]->threadid = 0;
 	mythread[0]->empty = 1;
 
-	//first thread to begin the file search 
+	//first thread to begin the file search
 	pthread_create(&threads[0],NULL, recur_file_search,(void*)mythread[0]);
 
-    
-    //wait/join threads 
+        //wait/join threads
 	for(int i = 0; i < threadNum; i++){
 	pthread_join(threads[i],NULL);
 	}
 
 	//wait for the first thread last
 	//in case rest of the thread didn't finish
-	//first won't finish 
+	//first won't finish
 	pthread_join(threads[0],NULL);
 
-	
 	//get end time
 	gettimeofday(&end, NULL);
 
@@ -112,22 +109,24 @@ int main(int argc, char **argv) {
 	return 0;
 }
 //This function takes a path to recurse on, searching for mathes to the
-// (global) search_term.  The base case for recursion is when *file is 
-// not a directory. 
-//Parameters: the starting path for recursion (char *), which could be a 
-// directory or a regular file (or something else, but we don't need to 
-// worry about anything else for this assignment). 
-//Returns: nothing 
+// (global) search_term.  The base case for recursion is when *file is
+// not a directory.
+//Parameters: the starting path for recursion (char *), which could be a
+// directory or a regular file (or something else, but we don't need to
+// worry about anything else for this assignment).
+//Returns: nothing
 //Effects: prints the filename if the base case is reached *and* search_term
-// is found in the filename; otherwise, prints the directory name if the directory 
-// matches search_term. 
-void *recur_file_search(void *file) 
+// is found in the filename; otherwise, prints the directory name if the directory
+// matches search_term.
+
+//most recent implementation of the function uses four pthreads
+//to carry on the recursive search
+void *recur_file_search(void *file)
 {
 	//start ctritical code (mutex lock)
 	// and create a string to save the path to open file
-    pthread_mutex_lock(&mutex);
+        pthread_mutex_lock(&mutex);
 	char *pathcp[threadNum];
-	
 
 	struct threadPath *cp;
 	for(int i = 0; i < threadNum; i++){
@@ -185,16 +184,16 @@ void *recur_file_search(void *file)
 			// so here we append the discovered filename (cur_file->d_name)
 			// to the current path (file -- we know file is a directory at
 			// this point)
-			next_file_str[id] = malloc(sizeof(char) * 
-					strlen(cur_file->d_name) + 
+			next_file_str[id] = malloc(sizeof(char) *
+					strlen(cur_file->d_name) +
 					strlen(pathcp[id]) + 2);
 
 			strncpy(next_file_str[id],pathcp[id], strlen(pathcp[id]));
 
-			strncpy(next_file_str[id] + strlen(pathcp[id]), 
+			strncpy(next_file_str[id] + strlen(pathcp[id]),
 					"/", 1);
-			strncpy(next_file_str[id] + strlen(pathcp[id]) + 1, 
-					cur_file->d_name, 
+			strncpy(next_file_str[id] + strlen(pathcp[id]) + 1,
+					cur_file->d_name,
 					strlen(cur_file->d_name) + 1);
 //recurse on the file
 
@@ -207,14 +206,17 @@ void *recur_file_search(void *file)
 			mythread[i]->threadid = i;
 			mythread[i]->path = next_file_str[0];//give work
 			mythread[i]->empty = 1;//not free anymore thread has work
-			pthread_create(&threads[i],NULL, 
+			pthread_create(&threads[i],NULL,
 					recur_file_search,(void*)mythread[i]);
 			mythread[0]->skip = 1;//thread is created
 			//exit loop. won't create all threads
 			break;
 			}
+			//check if a thread is empty
 			mythread[i]->empty = pthread_tryjoin_np(threads[i],NULL);
 			}
+			//rest of the threads(not thread 0) that hasn't assigned a thread
+			//will run in the recursive function
 
 			}
 			if(mythread[id]->skip == 0){
