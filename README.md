@@ -1,7 +1,5 @@
-# osp_lab4_sherpal
+# Multi-Threded Recursive File Search
 # implemented by Lhakpa Sherpa
-# CSC 3350 Spring 2018
-# Dr. Dingler
 
 - This program implements a recursive file search
 - Provided  a name(string) the program looks for files with similar names 
